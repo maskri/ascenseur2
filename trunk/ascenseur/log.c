@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <time.h>
 
-int log(int eCourant, char fonction, char message, char severity) {
+void log(int eCourant, char* fonction, char* message, char* severity) {
   FILE *f;
   time_t temps;
   struct tm date;
