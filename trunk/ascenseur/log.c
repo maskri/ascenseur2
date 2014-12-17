@@ -1,4 +1,4 @@
-int log(int eCourant, char fonction) {
+int log(int eCourant, char fonction, char message, char severity) {
   FILE *f;
   time_t temps;
   struct tm date;
@@ -9,7 +9,9 @@ int log(int eCourant, char fonction) {
   date=*localtime(&temps);
 
   sprintf(time_now, "%s", asctime(&date));
-  sprintf(line, "[ %s : appele de la fonction %s à l'étage %d ]", time_now, fonction, eCourant);
+  sprintf(line, "%s : [ %s : appele de la fonction %s à l'étage %d ]",severity,
+						    time_now, fonction, eCourant);
+  sprintf(line, "Message: %s ", message);
   
   f = fopen("log.ini", "W");
   while(fgetc(f) != EOF) {
