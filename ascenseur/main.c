@@ -14,42 +14,44 @@
 int appel(int etg);
 int selection(int etg);
 int saisieEntier(char chaine[], int etg);
+int deplacement(int a, int asc);
+void log(int eCourant, char* fonction, char* message, char* severity);
 /*DEFINITION DES CONSTANTES*/
 int MIN = -3, MAX = 11;
 
 /* ENTREE DU PROGRAMME */
 int main(int argc, char* argv[], char** envp){
 
-    //Définitions des variables
-    pid_t pid_fils;
+    /*Définitions des variables*/
+    int pid_fils;
     int tube[2];
     unsigned char bufferR[256], bufferW[256];
     int etg = 0, selec;
     
-    //boucle principale
+    /*boucle principale*/
     do{
         do{
-	    //création du tube
+	    /*création du tube*/
 	    if(pipe(tube) != 0){
 	       log(etg, "main","Erreur dans le pipe", "Error");
 	       exit(1);	
 	    }    
-	    //teste la création du processus
+	    /*teste la création du processus*/
 	    if((pid_fils = fork()) == -1){
 		 log(etg, "main","processus enfant", "Error");
 		 exit(1);
 	    }      
-	    //récupère la sélection 
+	    /*récupère la sélection */
             selec = appel(etg);
 	    
-	    //récupèration de la valeur 
+	    /*récupèration de la valeur */
 	    if(pid_fils == 0){
 		log(etg, "main","processus enfant", "Notice");
 		close(tube[1]);
 		read(tube[0], bufferR, BUFFER_SIZE);
-		int valeur = atof(bufferR);
+		int valeur = atoi(bufferR);
 		
-		//teste si on execute la suite du programme
+		/*teste si on execute la suite du programme*/
 		if (valeur != MAX){
 		   etg = deplacement(valeur, etg); 
 		   do				
@@ -58,7 +60,7 @@ int main(int argc, char* argv[], char** envp){
 		      etg = deplacement(valeur, etg);
 		}	
 		
-	    }else{// passage de la valeur sélectionné au processus enfant
+	    }else{/* passage de la valeur sélectionné au processus enfant*/
 		log(etg, "main","processus père", "Notice");
 		close(tube[0]);
 		sprintf(bufferW,"%d", selec);
