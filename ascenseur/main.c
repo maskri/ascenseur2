@@ -1,140 +1,119 @@
 /*DEFINTIONS DES BIBLIOTHEQUES */
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/wait.h>
+
 /*DEFINITIONS DES BIBLIOTHEQUES PERSONNELLES*/
 #include "deplacement.h"
-#include "log.h"
+#include "logg.h"
+#include "saisieEntier.h"
+#include "appel.h"
+#include "selection.h"
+
 /* DEFINTIONS des CONSTANTES*/
 #define BUFFER_SIZE 256
-
-/*DEFINITION DES PROTOTYPES DES FONCTIONS*/
-int appel(int etg);
-int selection(int etg);
-int saisieEntier(char chaine[], int etg);
+ 
+/*DEFINITION DES PROTOTYPES DES FONCTIONS */
+int saisieEntier(char chaine[], int etg ); /* */
+int selection(int etg, int MIN, int MAX);
+void logg(int eCourant, char* fonction, char* message, char* severity);
 int deplacement(int a, int asc);
-void log(int eCourant, char* fonction, char* message, char* severity);
-/*DEFINITION DES CONSTANTES*/
-int MIN = -3, MAX = 11;
+int appel(int etg);
 
-/* ENTREE DU PROGRAMME */
-int main(int argc, char* argv[], char** envp){
+/*DEFINITION DES CONSTANTES*/
+int MIN, MAX;
+
+/* ENTREE DU PROGRAMME */ 
+int main(void)
+{
 
     /*Définitions des variables*/
-    int pid_fils;
-    int tube[2];
-    unsigned char bufferR[256], bufferW[256];
-    int etg = 0, selec;
+    /*int pereVersFilsEnEciture[2],filsVersPereEnEciture[2];
+    char pereVersFilsEnLecture[BUFFER_SIZE], pereVersFilsEnEcriture[BUFFER_SIZE],
+	 	  filsVersPereEnLecture[BUFFER_SIZE], filsVersPereEnEcriture[BUFFER_SIZE];*/
+    int etg = 0, selec=0;/*pid_fils;*/
+    
+    int valeur;
+        
+    /*char* fonctionCourante = "main";
+    char* messageProcessus = "processus père";
+    char* messageErreurPipe = "Erreur dans le pipe";
+    char* messageErreurProcessus = "processus enfant"; 
+    char* typeErreurGrave = "Error";
+    char* typeErreurPasGrave = "Notice";*/
+    
+    MIN = -3, MAX = 11;
     
     /*boucle principale*/
     do{
         do{
 	    /*création du tube*/
-	    if(pipe(tube) != 0){
-	       log(etg, "main","Erreur dans le pipe", "Error");
-	       exit(1);	
-	    }    
-	    /*teste la création du processus*/
-	    if((pid_fils = fork()) == -1){
-		 log(etg, "main","processus enfant", "Error");
-		 exit(1);
-	    }      
-	    /*récupère la sélection */
-            selec = appel(etg);
+	    /*if( (pipe(pereVersFilsEnEciture) != 0) && (pipe(filsVersPereEnEciture) != 0) ){
+	       logg(etg, fonctionCourante, messageErreurPipe, typeErreurGrave);
+	       exit(1);
+	    } 
+	    if( (pid_fils = fork()) == -1){
+	       logg(etg, fonctionCourante,messageErreurProcessus, typeErreurGrave);
+	       exit(1);
+	    }*/
 	    
 	    /*récupèration de la valeur */
-	    if(pid_fils == 0){
-		log(etg, "main","processus enfant", "Notice");
-		close(tube[1]);
-		read(tube[0], bufferR, BUFFER_SIZE);
-		int valeur = atoi(bufferR);
+	    /*if(pid_fils == 0){
+		logg(etg, fonctionCourante,messageErreurProcessus, typeErreurPasGrave);
+		close(pereVersFilsEnEciture[1]);
+		read(pereVersFilsEnEciture[0], &pereVersFilsEnLecture, BUFFER_SIZE);
+		valeur = (int)pereVersFilsEnLecture;*/
 		
 		/*teste si on execute la suite du programme*/
 		if (valeur != MAX){
 		   etg = deplacement(valeur, etg); 
-		   do				
-		      valeur = selection(etg);     
+		   do
+		      valeur = selection(etg,MIN,MAX);     
 		   while (valeur < MIN || valeur > MAX-1);
-		      etg = deplacement(valeur, etg);
-		}	
+		      etg = deplacement(valeur, etg); 
+		}
 		
-	    }else{/* passage de la valeur sélectionné au processus enfant*/
-		log(etg, "main","processus père", "Notice");
-		close(tube[0]);
-		sprintf(bufferW,"%d", selec);
-		write(tube[1], bufferW, BUFFER_SIZE);
-		wait(NULL);
+		/*sinon on retourne processus père
+		if( etg == MAX){ 
+		  close(filsVersPereEnEciture[0]);
+		  sprintf(filsVersPereEnEcriture,"%d", selec);
+		  write(filsVersPereEnEciture[1], &filsVersPereEnEcriture, BUFFER_SIZE);
+		  wait(NULL);
+		  
+		}*/	
 		
-	    }  
-	    
-	}while (selec < MIN || selec > MAX);
-       /* if (selec != MAX){
-            etg = deplacement(selec, etg);
-            do
-                selec = selection(etg);
-            while (selec < MIN || selec > MAX-1);
-                etg = deplacement(selec, etg);
-        }*/
-    }
-    while (selec != 11);
-        log(etg, "main","arrêt ascenseur", "Notice") ;
+	    /*}else{ passage de la valeur sélectionné au processus enfant
+		récupère la sélection 
+		if(valeur != MAX ){
+		  
+		  debug 
+		  printf(" debug 1\n");
+		  
+		  selec = appel(etg);*/
+		  
+		 /* logg(etg, fonctionCourante,messageProcessus, typeErreurPasGrave);
+		  close(pereVersFilsEnEciture[0]);
+		  sprintf(pereVersFilsEnEcriture,"%d", selec);
+		  write(pereVersFilsEnEciture[1], &pereVersFilsEnEcriture, BUFFER_SIZE);
+		  wait(NULL);
+		}*/
+		/*récupère la valeur de retour du fils
+		close(filsVersPereEnEciture[1]);
+		read(filsVersPereEnEciture[0], &filsVersPereEnLecture, BUFFER_SIZE);
+		valeur = (int)filsVersPereEnLecture;*/	
+		
+	    /*}*/      
+	}while (etg < MIN || etg > MAX);
+       /* if ....do...while*/
+    }while (etg != 11);
+       /* logg(etg, fonctionCourante,"arrêt ascenseur", typeErreurPasGrave) ;*/
 	printf("Arrêt ascenseur\n");
-    return (0);
+    return 0;
 }
 
-/*Fonction qui permet d'appeler l'ascenseur
-  @return       etg   int :   étage sélectionné*/
-int appel(int etg){
-    char chaine[50];
-    sprintf(chaine, "A quel etage etes vous ?\n");
-    printf("Appel ascenseur\n");
-    int valeur = saisieEntier(chaine, etg);
-    log(valeur, "appel","Appel ascenseur", "Notice");
-    return valeur;
-}
 
-/*Fonction qui permet de séléctionner l'étage que l'on veut atteindre
-  @return       selec   int :   étage sélectionné*/
-int selection(int etg){
-    char chaine[50];
-    sprintf(chaine, "Selection etage ? [de %d a %d] \n", MIN, MAX);
-    int valeur = saisieEntier(chaine, etg);
-    log(valeur, "selection","Selection etage", "Notice");
-    return valeur;
-}
-
-/*Fonction qui gère les erreurs pour la saisie d'un entier
-  @params       chaine  char[]:   texte à afficher
-  @return       input   int  :    entier saisie par utilisateur*/
-int saisieEntier(char chaine[], int etg){
-  
-    int input = -100, bool, k;
-    
-    do{
-      
-        printf("%s\n",chaine);	
-	k = scanf("%d",&input);
-	scanf("%*[^\n]");
-	getchar();
-	
-        if( k == 0){	  
-            printf("Erreur de saisie !\n");
-	    bool = 0;
-        }else{
-	    bool = 1;
-	}
-
-	if(input == -100){
-	   log(etg, "saisieEntier","saisieEntier", "Error");
-	}else{
-	   log(input, "saisieEntier","saisieEntier", "Notice");
-	}
-	
-	
-    }while (bool == 0);
-    
-    return (input);
-}
 
